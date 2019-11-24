@@ -5,7 +5,6 @@ import (
 	"io"
 	"net/url"
 	"strconv"
-	"time"
 )
 
 // Telegram constants
@@ -953,16 +952,9 @@ type FileConfig struct {
 
 // UpdateConfig contains information about a GetUpdates request.
 type UpdateConfig struct {
-	Offset   int
-	Limit    int
-	Timeout  int
-	Interval time.Duration
-}
-
-const UpdateDefaultInterval = time.Second
-
-func (uc *UpdateConfig) SetInterval(t time.Duration) {
-	uc.Interval = t
+	Offset  int
+	Limit   int
+	Timeout int
 }
 
 // WebhookConfig contains information about a SetWebhook request.
