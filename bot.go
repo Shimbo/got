@@ -67,6 +67,42 @@ func (b *BotAPI) SetAPIEndpoint(apiEndpoint string) {
 	b.apiEndpoint = apiEndpoint
 }
 
+// MakeJsonRequest makes a request with json body to a specific endpoint with our token.
+func (bot *BotAPI) MakeJsonRequest(endpoint string, body io.Reader) (APIResponse, error) {
+	method := fmt.Sprintf(bot.apiEndpoint, bot.Token, endpoint)
+	req, err := http.NewRequest("POST", method, body)
+	if err != nil {
+		return APIResponse{}, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := bot.Client.Do(req)
+	if err != nil {
+		return APIResponse{}, err
+	}
+	defer resp.Body.Close()
+
+	var apiResp APIResponse
+	bytes, err := bot.decodeAPIResponse(resp.Body, &apiResp)
+	if err != nil {
+		return apiResp, err
+	}
+
+	if bot.Debug {
+		log.Printf("%s resp: %s", endpoint, bytes)
+	}
+
+	if !apiResp.Ok {
+		parameters := ResponseParameters{}
+		if apiResp.Parameters != nil {
+			parameters = *apiResp.Parameters
+		}
+		return apiResp, Error{Code: apiResp.ErrorCode, Message: apiResp.Description, ResponseParameters: parameters}
+	}
+
+	return apiResp, nil
+}
+
 // MakeRequest makes a request to a specific endpoint with our token.
 func (bot *BotAPI) MakeRequest(endpoint string, params url.Values) (APIResponse, error) {
 	method := fmt.Sprintf(bot.apiEndpoint, bot.Token, endpoint)
